@@ -90,7 +90,7 @@ jobs:
         
         # 同步Python依赖
         echo "Installing Python dependencies..."
-        uv sync --extra webui --default-index 
+        uv sync --extra webui
         
         # 安装huggingface-cli工具
         echo "Installing huggingface-cli..."
