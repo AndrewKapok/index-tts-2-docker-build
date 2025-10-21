@@ -106,8 +106,6 @@ jobs:
 
     - name: Build Docker image
       run: |
-        # 复制Dockerfile到工作目录
-        cp .github/docker/Dockerfile .
         
         # 构建Docker镜像
         echo "Building Docker image..."
