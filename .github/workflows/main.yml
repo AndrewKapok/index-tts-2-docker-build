@@ -104,6 +104,15 @@ jobs:
         echo "Verifying downloaded models..."
         find checkpoints -type f -name "*.pth" | head -5 | xargs -I {} ls -la {}
 
+    - name: Clean up
+      run: |
+        echo "Start cleanning..."
+        mv checkpoints /tmp/checkpoints-backup
+        shopt -s dotglob
+        rm -rf *
+        shopt -u dotglob
+        mv /tmp/checkpoints-backup checkpoints
+    
     - name: Build Docker image
       run: |
         # 构建Docker镜像

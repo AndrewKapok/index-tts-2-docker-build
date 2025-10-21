@@ -1,86 +1,9 @@
-# Git
-.git
-.gitignore
-.gitattributes
-.github
+# 排除所有文件
+*
 
-# Docker
-Dockerfile
-.dockerignore
-
-# Python
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-.Python
-env
-pip-log.txt
-pip-delete-this-directory.txt
-.tox
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-.git
-
-# Node.js
-node_modules
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# IDE
-.vscode
-.idea
-*.swp
-*.swo
-
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# 临时文件
-*.tmp
-*.temp
-.cache
-
-# 日志文件
-*.log
-logs/
-
-# 测试文件
-test/
-tests/
-*.test
-
-# 文档
-README.md
-LICENSE
-*.txt
-*.md
-
-# 不需要复制的目录（因为会在构建过程中下载）
+# 只包含 checkpoints 文件夹
 !index-tts-repo/checkpoints/
-index-tts-repo/.git/
-index-tts-repo/.github/
 
-# 大型文件（除了模型）
-*.zip
-*.tar
-*.gz
-
-# 本地配置文件
-config.yaml
-*.yaml
-*.yml
-.env
-.env.local
+# 包含 Dockerfile
+!Dockerfile
+!.dockerignore
