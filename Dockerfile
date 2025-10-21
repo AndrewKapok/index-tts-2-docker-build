@@ -18,7 +18,7 @@ RUN uv sync --extra webui
 
 RUN uv tool install "huggingface-hub[cli,hf_xet]" 
 
-RUN hf download IndexTeam/IndexTTS-2 --local-dir=checkpoints
+RUN uv run hf download IndexTeam/IndexTTS-2 --local-dir=checkpoints
 
 EXPOSE 7860
 
