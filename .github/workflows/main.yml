@@ -69,7 +69,6 @@ jobs:
     - name: Configure Git and clone IndexTTS
       run: |
         # 配置Git使用镜像加速
-        git config --global url."https://xget.xi-xu.me/gh/".insteadOf "https://github.com/"
         git lfs install
         
         # 克隆IndexTTS主仓库
