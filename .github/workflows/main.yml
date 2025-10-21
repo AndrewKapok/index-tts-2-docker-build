@@ -1,13 +1,11 @@
 name: Build and Push IndexTTS 2 Docker Image
 
 on:
-  # 自动触发条件
   push:
     branches: [ main, master ]
     tags: [ 'v*' ]
   pull_request:
     branches: [ main, master ]
-  # 手动触发
   workflow_dispatch:
     inputs:
       version:
@@ -20,7 +18,7 @@ on:
         default: true
 
 env:
-  IMAGE_NAME: index-tts-2-docker-build
+  IMAGE_NAME: index-tts-2
   REGISTRY_NAMESPACE: andrewkapok
 
 jobs:
@@ -33,8 +31,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        lfs: true  # 启用Git LFS支持
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -58,65 +54,9 @@ jobs:
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
           type=sha,prefix={{branch}}-
-        # 手动触发时使用输入的版本号
-        labels: |
-          org.opencontainers.image.title=IndexTTS-2
-          org.opencontainers.image.description="IndexTTS 2 Text-to-Speech System"
-          org.opencontainers.image.url=https://github.com/${{ github.repository }}
-          org.opencontainers.image.source=https://github.com/${{ github.repository }}
-          org.opencontainers.image.version=${{ github.event.inputs.version || 'latest' }}
 
-    - name: Configure Git and clone IndexTTS
-      run: |
-        # 配置Git使用镜像加速
-        git lfs install
-        
-        # 克隆IndexTTS主仓库
-        echo "Cloning IndexTTS repository..."
-        git clone https://github.com/index-tts/index-tts.git index-tts-repo
-        cd index-tts-repo
-        
-        # 拉取LFS文件（模型等大文件）
-        echo "Pulling LFS files..."
-        git lfs pull
-
-    - name: Download models
-      run: |
-        cd index-tts-repo
-        
-        # 安装uv包管理器
-        echo "Installing uv package manager..."
-        pip install -U uv 
-        
-        # 同步Python依赖
-        echo "Installing Python dependencies..."
-        uv sync --extra webui
-        
-        # 安装huggingface-cli工具
-        echo "Installing huggingface-cli..."
-        uv tool install "huggingface-hub[cli,hf_xet]" 
-        
-        # 设置环境变量并下载模型
-        echo "Downloading IndexTTS-2 models..."
-        uv run hf download IndexTeam/IndexTTS-2 --local-dir=checkpoints
-        
-        # 验证模型文件
-        echo "Verifying downloaded models..."
-        find checkpoints -type f -name "*.pth" | head -5 | xargs -I {} ls -la {}
-
-    - name: Clean up
-      run: |
-        echo "Start cleanning..."
-        cd index-tts-repo
-        mv checkpoints /tmp/checkpoints-backup
-        shopt -s dotglob
-        rm -rf *
-        shopt -u dotglob
-        mv /tmp/checkpoints-backup checkpoints
-    
     - name: Build Docker image
       run: |
-        # 构建Docker镜像
         echo "Building Docker image..."
         docker buildx build \
           --platform linux/amd64 \
@@ -130,14 +70,3 @@ jobs:
       run: |
         echo "Image successfully pushed to GitHub Container Registry"
         echo "Image: ghcr.io/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }}"
-        echo "To use this image:"
-        echo "docker run -p 7860:7860 ghcr.io/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }}"
-    
-    - name: Upload Docker image as artifact
-      if: github.event_name == 'workflow_dispatch' && !inputs.push_to_registry
-      uses: actions/upload-artifact@v4
-      with:
-        name: index-tts2-docker-image
-        path: |
-          docker-image.tar
-        retention-days: 1

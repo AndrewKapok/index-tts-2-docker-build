@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 # 初始化 Git LFS
 RUN git lfs install
 
-# 克隆 IndexTTS 仓库（在构建时下载）
+# 克隆 IndexTTS 仓库
 RUN git clone https://github.com/index-tts/index-tts.git index-tts
 
 WORKDIR /app/index-tts
@@ -26,8 +26,9 @@ RUN pip install -U uv
 # 同步 Python 依赖
 RUN uv sync --extra webui
 
-# 复制预下载的模型文件（从构建上下文）
-COPY index-tts-repo/checkpoints/ ./checkpoints/
+# 安装 huggingface-cli 并下载模型
+RUN uv tool install "huggingface-hub[cli,hf_xet]" && \
+    uv run hf download IndexTeam/IndexTTS-2 --local-dir=checkpoints
 
 # 暴露 Gradio 默认端口
 EXPOSE 7860
@@ -38,4 +39,4 @@ ENV GRADIO_SERVER_NAME=0.0.0.0
 ENV GRADIO_SERVER_PORT=7860
 
 # 启动 Web UI
-CMD ["uv", "run", "webui.py"]
+CMD ["uv", "run", "python", "webui.py"]
