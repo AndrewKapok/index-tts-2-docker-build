@@ -98,8 +98,7 @@ jobs:
         
         # 设置环境变量并下载模型
         echo "Downloading IndexTTS-2 models..."
-        export HF_ENDPOINT=https://xget.xi-xu.me/hf
-        uv run huggingface-cli download IndexTeam/IndexTTS-2 --local-dir=checkpoints --resume-download
+        uv run hf download IndexTeam/IndexTTS-2 --local-dir=checkpoints --resume-download
         
         # 验证模型文件
         echo "Verifying downloaded models..."
