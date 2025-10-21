@@ -86,15 +86,15 @@ jobs:
         
         # 安装uv包管理器
         echo "Installing uv package manager..."
-        pip install -U uv -i https://mirrors.aliyun.com/pypi/simple
+        pip install -U uv 
         
         # 同步Python依赖
         echo "Installing Python dependencies..."
-        uv sync --extra webui --default-index "https://mirrors.aliyun.com/pypi/simple"
+        uv sync --extra webui --default-index 
         
         # 安装huggingface-cli工具
         echo "Installing huggingface-cli..."
-        uv tool install "huggingface-hub[cli,hf_xet]" -i "https://mirrors.aliyun.com/pypi/simple"
+        uv tool install "huggingface-hub[cli,hf_xet]" 
         
         # 设置环境变量并下载模型
         echo "Downloading IndexTTS-2 models..."
