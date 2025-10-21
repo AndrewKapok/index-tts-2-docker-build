@@ -29,11 +29,41 @@ jobs:
       packages: write
     
     steps:
+    - name: Clean up disk space before build
+      run: |
+        echo "清理磁盘空间..."
+        df -h
+        
+        # 清理系统缓存
+        sudo apt-get clean
+        sudo rm -rf /var/lib/apt/lists/*
+        
+        # 清理 Docker 缓存和镜像
+        docker system prune -a -f || true
+        
+        # 清理 GitHub Actions 缓存
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /usr/local/share/boost
+        sudo rm -rf /opt/microsoft
+        sudo rm -rf /opt/hostedtoolcache
+        
+        # 清理日志文件
+        sudo find /var/log -type f -name "*.log" -exec truncate -s 0 {} \; 2>/dev/null || true
+        
+        echo "清理后磁盘空间:"
+        df -h
+
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
+    - name: Set up Docker Buildx with disk limits
       uses: docker/setup-buildx-action@v3
+      with:
+        driver-opts: |
+          image=moby/buildkit:buildx-stable-1
+          # 限制磁盘使用
+          disk.space=8G
 
     - name: Log in to GitHub Container Registry
       if: github.event_name == 'workflow_dispatch' && inputs.push_to_registry || github.event_name != 'workflow_dispatch'
@@ -43,27 +73,26 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Extract metadata for Docker
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ghcr.io/${{ github.repository }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=sha,prefix={{branch}}-
-
-    - name: Build Docker image
+    - name: Build Docker image with resource limits
       run: |
-        echo "Building Docker image..."
-        docker buildx build \
+        echo "Building Docker image with resource limits..."
+        DOCKER_BUILDKIT=1 docker buildx build \
           --platform linux/amd64 \
           --tag ghcr.io/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }} \
           --tag ghcr.io/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest \
           --push \
+          --memory=4G \
+          --shm-size=512M \
+          --ulimit nofile=1024:1024 \
           .
+      env:
+        BUILDKIT_PROGRESS: plain
+
+    - name: Clean up after build
+      run: |
+        echo "构建后清理..."
+        docker system prune -f
+        df -h
 
     - name: Push to GitHub Packages
       if: github.event_name == 'workflow_dispatch' && inputs.push_to_registry || github.event_name != 'workflow_dispatch'
