@@ -98,7 +98,7 @@ jobs:
         
         # 设置环境变量并下载模型
         echo "Downloading IndexTTS-2 models..."
-        uv run hf download IndexTeam/IndexTTS-2 --local-dir=checkpoints --resume-download
+        uv run hf download IndexTeam/IndexTTS-2 --local-dir=checkpoints --resume
         
         # 验证模型文件
         echo "Verifying downloaded models..."
