@@ -1,0 +1,65 @@
+# 忽略Git相关文件
+.git
+.gitignore
+.github
+
+# 忽略Git LFS指针文件
+.gitattributes
+
+# 忽略Python缓存文件
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+
+# 忽略IDE文件
+.vscode
+.idea
+*.swp
+*.swo
+
+# 忽略文档文件
+README.md
+LICENSE
+*.txt
+*.pdf
+
+# 忽略测试文件
+test
+tests
+*.test
+
+# 忽略临时文件和构建产物
+tmp
+temp
+build
+dist
+*.egg-info
+
+# 忽略Docker相关文件
+Dockerfile
+.dockerignore
+
+# 忽略大型数据文件（已在容器内下载）
+*.pth
+*.pt
+*.bin
+*.h5
+*.zip
+*.tar.gz
+
+# 忽略日志文件
+*.log
+logs
