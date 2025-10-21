@@ -1,48 +1,43 @@
-# 使用Python官方镜像作为基础
+# 使用官方 Python 运行时作为基础镜像
 FROM python:3.10-slim
 
 # 设置工作目录
 WORKDIR /app
 
-# 设置环境变量
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app \
-    HF_ENDPOINT=https://xget.xi-xu.me/hf \
-    UV_CACHE_DIR=/app/.uv-cache
-
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
     git \
     git-lfs \
-    curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && git lfs install
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
 
-# 配置Git使用镜像加速
-RUN git config --global url."https://xget.xi-xu.me/gh/".insteadOf "https://github.com/"
+# 初始化 Git LFS
+RUN git lfs install
 
-# 复制IndexTTS代码和模型
-COPY index-tts-repo/ .
+# 复制 IndexTTS 仓库内容
+COPY index-tts-repo/ /app/index-tts/
 
-# 安装Python包管理工具uv
-RUN pip install -U uv -i https://mirrors.aliyun.com/pypi/simple
+WORKDIR /app/index-tts
 
-# 安装Python依赖
-RUN uv sync --extra webui --default-index "https://mirrors.aliyun.com/pypi/simple"
+# 安装 uv 包管理器
+RUN pip install -U uv
 
-# 安装huggingface-cli工具
-RUN uv tool install "huggingface-hub[cli,hf_xet]" -i "https://mirrors.aliyun.com/pypi/simple"
+# 同步 Python 依赖
+RUN uv sync --extra webui
 
-# 创建非root用户运行应用（安全最佳实践）
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
+# 复制预下载的模型文件
+COPY index-tts-repo/checkpoints/ /app/index-tts/checkpoints/
 
-# 暴露WebUI默认端口
+# 创建模型软链接（如果需要）
+RUN ln -sf /app/index-tts/checkpoints /app/checkpoints
+
+# 暴露 Gradio 默认端口
 EXPOSE 7860
 
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:7860 || exit 1
+# 设置环境变量
+ENV PYTHONPATH=/app/index-tts
+ENV GRADIO_SERVER_NAME=0.0.0.0
+ENV GRADIO_SERVER_PORT=7860
 
-# 启动命令
-CMD ["uv", "run", "webui.py", "--listen", "--server-name", "0.0.0.0"]
+# 启动 Web UI
+CMD ["uv", "run", "python", "webui.py"]

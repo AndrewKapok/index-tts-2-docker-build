@@ -1,12 +1,14 @@
-# 忽略Git相关文件
+# Git
 .git
 .gitignore
+.gitattributes
 .github
 
-# 忽略Git LFS指针文件
-.gitattributes
+# Docker
+Dockerfile
+.dockerignore
 
-# 忽略Python缓存文件
+# Python
 __pycache__
 *.pyc
 *.pyo
@@ -23,43 +25,62 @@ nosetests.xml
 coverage.xml
 *.cover
 *.log
+.git
 
-# 忽略IDE文件
+# Node.js
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
 .vscode
 .idea
 *.swp
 *.swo
 
-# 忽略文档文件
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.temp
+.cache
+
+# 日志文件
+*.log
+logs/
+
+# 测试文件
+test/
+tests/
+*.test
+
+# 文档
 README.md
 LICENSE
 *.txt
-*.pdf
+*.md
 
-# 忽略测试文件
-test
-tests
-*.test
+# 不需要复制的目录（因为会在构建过程中下载）
+!index-tts-repo/checkpoints/
+index-tts-repo/.git/
+index-tts-repo/.github/
 
-# 忽略临时文件和构建产物
-tmp
-temp
-build
-dist
-*.egg-info
-
-# 忽略Docker相关文件
-Dockerfile
-.dockerignore
-
-# 忽略大型数据文件（已在容器内下载）
-*.pth
-*.pt
-*.bin
-*.h5
+# 大型文件（除了模型）
 *.zip
-*.tar.gz
+*.tar
+*.gz
 
-# 忽略日志文件
-*.log
-logs
+# 本地配置文件
+config.yaml
+*.yaml
+*.yml
+.env
+.env.local
