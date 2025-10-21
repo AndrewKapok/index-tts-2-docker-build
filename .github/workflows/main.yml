@@ -107,6 +107,7 @@ jobs:
     - name: Clean up
       run: |
         echo "Start cleanning..."
+        cd index-tts-repo
         mv checkpoints /tmp/checkpoints-backup
         shopt -s dotglob
         rm -rf *
