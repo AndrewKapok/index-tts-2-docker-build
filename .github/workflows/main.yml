@@ -20,8 +20,8 @@ on:
         default: true
 
 env:
-  # 镜像名称，使用GitHub仓库名称
-  IMAGE_NAME: ${{ github.event.repository.name }}
+  IMAGE_NAME: index-tts-2-docker-build
+  REGISTRY_NAMESPACE: andrewkapok
 
 jobs:
   build-and-push:
@@ -106,15 +106,12 @@ jobs:
 
     - name: Build Docker image
       run: |
-        
         # 构建Docker镜像
         echo "Building Docker image..."
         docker buildx build \
           --platform linux/amd64 \
-          --tag ghcr.io/${{ github.repository }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }} \
-          --tag ghcr.io/${{ github.repository }}/${{ env.IMAGE_NAME }}:latest \
-          --build-arg BUILDKIT_INLINE_CACHE=1 \
-          --cache-from=type=registry,ref=ghcr.io/${{ github.repository }}/${{ env.IMAGE_NAME }}:latest \
+          --tag ghcr.io/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }} \
+          --tag ghcr.io/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest \
           --push \
           .
 
@@ -122,12 +119,10 @@ jobs:
       if: github.event_name == 'workflow_dispatch' && inputs.push_to_registry || github.event_name != 'workflow_dispatch'
       run: |
         echo "Image successfully pushed to GitHub Container Registry"
-        echo "Image: ghcr.io/${{ github.repository }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }}"
-        
-        # 显示如何使用镜像
+        echo "Image: ghcr.io/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }}"
         echo "To use this image:"
-        echo "docker run -p 7860:7860 ghcr.io/${{ github.repository }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }}"
-
+        echo "docker run -p 7860:7860 ghcr.io/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }}"
+    
     - name: Upload Docker image as artifact
       if: github.event_name == 'workflow_dispatch' && !inputs.push_to_registry
       uses: actions/upload-artifact@v4
