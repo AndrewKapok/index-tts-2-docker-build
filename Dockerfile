@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git-lfs \
     ffmpeg \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*  # 彻底清理APT缓存（释放500MB+）
+    && rm -rf /var/lib/apt/lists/* 
 
 # 2. 配置Git LFS并拉取代码（合并Git操作，避免中间层残留）
 RUN git lfs install && \
@@ -44,10 +44,9 @@ COPY --from=builder /root/.local/share/uv /root/.local/share/uv
 # 配置环境变量（指定模型路径，确保WebUI能找到）
 ENV MODEL_PATH=/app/checkpoints \
     PYTHONUNBUFFERED=1 \
-    PATH="/root/.local/share/uv/bin:$PATH"  # 添加uv到环境变量
-
+    PATH="/root/.local/share/uv/bin:$PATH"
 # 暴露端口
 EXPOSE 7860
 
 # 启动命令（明确绑定0.0.0.0，允许外部访问）
-CMD ["uv", "run", "webui.py", "--server-name", "0.0.0.0", "--server-port", "7860"]
+CMD ["uv", "run", "webui.py"]
