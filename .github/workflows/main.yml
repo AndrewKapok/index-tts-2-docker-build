@@ -78,6 +78,12 @@ jobs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+      with:  
+        driver: docker-container
+        driver-opt: |
+          image=moby/buildkit:latest
+          env.BUILDKIT_STORAGE_DRIVER=overlay2
+          env.BUILDKIT_STORAGE_OPTS=size=40GB  # 关键：设置40GB构建空间
 
     - name: Log in to GitHub Container Registry
       if: github.event_name == 'workflow_dispatch' && inputs.push_to_registry || github.event_name != 'workflow_dispatch'
