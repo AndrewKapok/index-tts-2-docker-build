@@ -54,7 +54,7 @@ jobs:
         driver-opts: |
           image=moby/buildkit:latest
           env.BUILDKIT_STORAGE_DRIVER=overlay2
-          env.BUILDKIT_STORAGE_OPTS=size=80GB
+          env.BUILDKIT_STORAGE_OPTS=size=120GB
 
     - name: Log in to GitHub Container Registry
       if: github.event_name == 'workflow_dispatch' && inputs.push_to_registry || github.event_name != 'workflow_dispatch'
