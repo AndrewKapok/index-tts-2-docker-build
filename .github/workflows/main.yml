@@ -40,17 +40,7 @@ jobs:
         remove-android: true
         remove-haskell: true
         remove-codeql: true
-        remove-docker-images: true 
-        cleanup-home: true 
-        mount-tmpfs: true
-        extra-remove: |
-          /usr/share/doc 
-          /usr/share/man 
-          /var/lib/apt/lists 
-          /var/log 
-          /var/cache/apt/archives 
-          /usr/local/lib/node_modules  # 彻底删除 Node 相关残留
-          /var/lib/snapd
+        remove-docker-images: true
 
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -61,10 +51,10 @@ jobs:
       uses: docker/setup-buildx-action@v3
       with:  
         driver: docker-container
-        driver-opt: |
+        driver-opts: |
           image=moby/buildkit:latest
           env.BUILDKIT_STORAGE_DRIVER=overlay2
-          env.BUILDKIT_STORAGE_OPTS=size=60GB,root=/var/lib/buildkit
+          env.BUILDKIT_STORAGE_OPTS=size=80GB,root=/var/lib/buildkit
 
     - name: Log in to GitHub Container Registry
       if: github.event_name == 'workflow_dispatch' && inputs.push_to_registry || github.event_name != 'workflow_dispatch'

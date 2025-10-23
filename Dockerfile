@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git lfs install && \
-    git clone https://github.com/index-tts/index-tts.git . && \
+    git clone --depth 1 https://github.com/index-tts/index-tts.git . && \
     git lfs pull && \
     rm -rf .git .gitattributes .gitignore
 
