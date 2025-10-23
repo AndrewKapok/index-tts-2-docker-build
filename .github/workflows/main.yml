@@ -34,33 +34,14 @@ jobs:
     - name: Maximize build disk space
       uses: easimon/maximize-build-space@v10
       with:
-        root-reserve-mb: 4096  # 仅保留 4GB 根分区空间（极限压缩）
-        swap-size-mb: 8192     # 分配 8GB 交换空间（应对内存不足）
+        root-reserve-mb: 4096 
+        swap-size-mb: 8192     
         remove-dotnet: true
         remove-android: true
         remove-haskell: true
         remove-codeql: true
-        remove-docker-images: true  # 删除所有预装 Docker 镜像（节省 5-10GB）
-        remove-ghcli: true
-        remove-go: true
-        remove-java: true
-        remove-node: true
-        remove-python: false   # 保留 Python（你的场景需要）
-        remove-ruby: true
-        remove-php: true
-        remove-amazon-ssm-agent: true
-        remove-azure-cli: true
-        remove-google-cloud-sdk: true
-        remove-mysql: true
-        remove-postgresql: true
-        remove-vcpkg: true
-        remove-cmake: true
-        remove-mono: true
-        remove-docker-compose: true
-        remove-mongodb: true
-        remove-nginx: true
-        remove-apache: true
-        cleanup-home: true     # 清理用户目录缓存
+        remove-docker-images: true 
+        cleanup-home: true 
         mount-tmpfs: true
         extra-remove: |
           /usr/share/doc 
@@ -83,7 +64,7 @@ jobs:
         driver-opt: |
           image=moby/buildkit:latest
           env.BUILDKIT_STORAGE_DRIVER=overlay2
-          env.BUILDKIT_STORAGE_OPTS=size=40GB  # 关键：设置40GB构建空间
+          env.BUILDKIT_STORAGE_OPTS=size=60GB,root=/var/lib/buildkit
 
     - name: Log in to GitHub Container Registry
       if: github.event_name == 'workflow_dispatch' && inputs.push_to_registry || github.event_name != 'workflow_dispatch'
