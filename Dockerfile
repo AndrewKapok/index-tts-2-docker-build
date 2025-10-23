@@ -19,11 +19,7 @@ RUN git lfs pull
 
 RUN pip install -U uv && uv sync --extra webui
 
-# 创建模型存储目录
-RUN mkdir -p /app/checkpoints
-
-# 复制本地checkpoint模型文件到容器（从GitHub Actions中下载的模型）
-COPY index-tts-repo/checkpoints /app/checkpoints
+RUN uv tool install "huggingface-hub[cli,hf_xet]" && uv run hf download IndexTeam/IndexTTS-2 --local-dir=checkpoints
 
 # 暴露WebUI端口（默认7860）
 EXPOSE 7860
