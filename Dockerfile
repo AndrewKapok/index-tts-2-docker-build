@@ -2,7 +2,10 @@ FROM python:3.11-slim-bookworm AS builder
 
 WORKDIR /app
 
-
+# 在依赖安装前添加，查看初始空间
+RUN echo "=== 初始空间分配 ===" && df -h /app && \
+    echo "=== 存储驱动配置 ===" && cat /etc/buildkitd.toml 2>/dev/null
+    
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     git-lfs \
