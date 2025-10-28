@@ -1,112 +1,61 @@
-name: Build and Push IndexTTS 2 Docker Image
+name: Build and Push Docker Image to GHCR
 
+# 触发条件：推送到 main 分支 或 创建标签时触发
 on:
-  # 自动触发条件
   push:
-    branches: [ main, master ]
-    tags: [ 'v*' ]
-  pull_request:
-    branches: [ main, master ]
-  # 手动触发
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Docker image version tag'
-        required: true
-        default: 'latest'
-      push_to_registry:
-        description: 'Push to GitHub Container Registry'
-        type: boolean
-        default: true
-
-env:
-  IMAGE_NAME: index-tts-2-docker-build
-  REGISTRY_NAMESPACE: andrewkapok
+    branches: [ "main" ]
+    tags: [ "v*.*.*" ]  # 匹配 v1.0.0 等标签格式
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # 使用 Ubuntu 系统运行
     permissions:
-      contents: read
-      packages: write
+      contents: read        # 读取代码权限
+      packages: write       # 推送镜像到 GHCR 的权限
 
     steps:
-    - name: Maximize build disk space
-      uses: easimon/maximize-build-space@v10
-      with:
-        root-reserve-mb: 4096 
-        swap-size-mb: 8192     
-        remove-dotnet: true
-        remove-android: true
-        remove-haskell: true
-        remove-codeql: true
-        remove-docker-images: true
+      # 步骤 1：检出代码仓库
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        lfs: true  # 启用Git LFS支持
+      # 步骤 2：设置 Docker Buildx（增强型构建工具，支持多平台）
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      with:  
-        driver: docker-container
-        driver-opts: |
-          image=moby/buildkit:latest
-          env.BUILDKIT_STORAGE_DRIVER=overlay2
-          env.BUILDKIT_STORAGE_OPTS=size=120GB
+      # 步骤 3：登录到 GitHub Container Registry (GHCR)
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          # 用户名：GitHub 仓库所有者（自动获取）
+          username: ${{ github.actor }}
+          # 密码：使用 GitHub 提供的令牌（需开启仓库 Secrets 权限）
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Log in to GitHub Container Registry
-      if: github.event_name == 'workflow_dispatch' && inputs.push_to_registry || github.event_name != 'workflow_dispatch'
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      # 步骤 4：提取镜像标签（支持 latest 和 版本号标签）
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            # 镜像名称格式：ghcr.io/<用户名>/<仓库名>
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
+          # 标签规则：main 分支对应 latest，标签对应版本号
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}},event=tag
+            type=semver,pattern={{major}}.{{minor}},event=tag
 
-    - name: Extract metadata for Docker
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ghcr.io/${{ github.repository }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=sha,prefix={{branch}}-
-        # 手动触发时使用输入的版本号
-        labels: |
-          org.opencontainers.image.title=IndexTTS-2
-          org.opencontainers.image.description="IndexTTS 2 Text-to-Speech System"
-          org.opencontainers.image.url=https://github.com/${{ github.repository }}
-          org.opencontainers.image.source=https://github.com/${{ github.repository }}
-          org.opencontainers.image.version=${{ github.event.inputs.version || 'latest' }}
-    
-    - name: Build Docker image
-      run: |
-        # 构建Docker镜像
-        echo "Building Docker image..."
-        docker buildx build \
-          --platform linux/amd64 \
-          --tag ghcr.io/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }} \
-          --tag ghcr.io/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:latest \
-          --push \
-          .
-
-    - name: Push to GitHub Packages
-      if: github.event_name == 'workflow_dispatch' && inputs.push_to_registry || github.event_name != 'workflow_dispatch'
-      run: |
-        echo "Image successfully pushed to GitHub Container Registry"
-        echo "Image: ghcr.io/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }}"
-        echo "To use this image:"
-        echo "docker run -p 7860:7860 ghcr.io/${{ env.REGISTRY_NAMESPACE }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.version || 'latest' }}"
-    
-    - name: Upload Docker image as artifact
-      if: github.event_name == 'workflow_dispatch' && !inputs.push_to_registry
-      uses: actions/upload-artifact@v4
-      with:
-        name: index-tts2-docker-image
-        path: |
-          docker-image.tar
-        retention-days: 1
+      # 步骤 5：构建并推送 Docker 镜像
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .  # 构建上下文（Dockerfile 所在目录）
+          file: ./Dockerfile  # Dockerfile 路径（根据实际路径调整）
+          push: true  # 启用推送
+          tags: ${{ steps.meta.outputs.tags }}  # 使用步骤 4 生成的标签
+          labels: ${{ steps.meta.outputs.labels }}  # 添加元数据标签
+          cache-from: type=gha  # 使用 GitHub Actions 缓存加速构建
+          cache-to: type=gha,mode=max  # 保存缓存供下次使用
+          # 可选：支持多平台构建（如 AMD64 和 ARM64）
+          # platforms: linux/amd64,linux/arm64
