@@ -1,9 +1,3 @@
-# 排除所有文件
-*
-
-# 只包含 checkpoints 文件夹
-!index-tts-repo/checkpoints/
-
-# 包含 Dockerfile
-!Dockerfile
-!.dockerignore
+.vscode
+.dockerignore
+.github

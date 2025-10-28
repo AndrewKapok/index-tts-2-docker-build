@@ -1,32 +1,14 @@
-FROM python:3.11-slim-bookworm AS builder
+# 基于轻量级 Nginx 镜像构建
+FROM nginx:alpine
 
-WORKDIR /app
+# 删除 Nginx 默认配置，避免冲突
+RUN rm /etc/nginx/conf.d/default.conf
 
-# 在依赖安装前添加，查看初始空间
-RUN echo "=== 初始空间分配 ===" && df -h /app && \
-    echo "=== 存储驱动配置 ===" && cat /etc/buildkitd.toml 2>/dev/null
-    
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    git-lfs \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# 将自定义代理配置复制到 Nginx 配置目录
+COPY nginx.conf /etc/nginx/conf.d/index-tts-proxy.conf
 
-RUN git lfs install && \
-    git clone --depth 1 https://github.com/index-tts/index-tts.git . && \
-    git lfs pull && \
-    rm -rf .git .gitattributes .gitignore
+# 暴露 80 端口（若需 HTTPS 可添加 443 端口）
+EXPOSE 80
 
-RUN apt-get purge -y git git-lfs && apt-get autoremove -y && apt-get clean
-
-RUN pip install --no-cache-dir -U uv && \
-    uv sync --extra webui && \
-    uv cache clean && \
-    rm -rf /root/.cache/pip
-
-# RUN uv tool install "huggingface-hub[cli,hf_xet]" && \
-#    uv run hf download IndexTeam/IndexTTS-2 --local-dir=checkpoints && \
-#    uv tool uninstall huggingface-hub && \
-#    rm -rf /root/.cache/uv
-
-CMD ["uv","run",webui.py]
+# 启动 Nginx 并保持前台运行（容器存活必需）
+CMD ["nginx", "-g", "daemon off;"]
